@@ -1,3 +1,70 @@
-git add .github/workflows/ci.yml
-git commit -m "ci: add quality gate pipeline with playwright report artifact"
-git push
+name: ci-quality-gate
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Start API (background)
+        run: |
+          nohup node apps/api/server.js > api.log 2>&1 &
+          echo "API started"
+
+      - name: Wait for API health
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:3000/health | grep -q "ok"; then
+              echo "API is healthy ✅"
+              exit 0
+            fi
+            echo "Waiting for API... ($i)"
+            sleep 1
+          done
+          echo "API did not become healthy ❌"
+          cat api.log
+          exit 1
+
+      - name: Run Playwright tests
+        run: npx playwright test --project=${{ matrix.browser }}
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: playwright-report
+          retention-days: 7
+
+      - name: Upload API log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-log-${{ matrix.browser }}
+          path: api.log
+          retention-days: 7
