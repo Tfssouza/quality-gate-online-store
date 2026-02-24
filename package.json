@@ -1,0 +1,28 @@
+{
+  "name": "gate-online-store",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+  "start:api": "node apps/api/server.js",
+  "test": "playwright test",
+  "report": "playwright show-report"
+}
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  },
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

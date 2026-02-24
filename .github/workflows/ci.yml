@@ -1,0 +1,49 @@
+name: quality-gate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Start API (background)
+        run: |
+          nohup npm run start:api > api.log 2>&1 &
+          sleep 2
+
+      - name: Health check
+        run: curl -f http://localhost:3000/health
+
+      - name: Run tests (browser: ${{ matrix.browser }})
+        run: npx playwright test --project=${{ matrix.browser }}
+
+      - name: Upload Playwright report (browser: ${{ matrix.browser }})
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: |
+            playwright-report/
+            test-results/
+            api.log
