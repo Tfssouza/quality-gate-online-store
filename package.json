@@ -1,28 +1,21 @@
 {
-  "name": "gate-online-store",
+  "name": "quality-gate-online-store",
   "version": "1.0.0",
-  "private": true,
+  "description": "Quality Gate demo project for QA Engineering",
+  "main": "index.js",
   "scripts": {
-  "start:api": "node apps/api/server.js",
-  "test": "playwright test",
-  "report": "playwright show-report"
-}
+    "start:api": "node apps/api/server.js",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report"
   },
+  "author": "Thayrine Souza",
+  "license": "MIT",
   "devDependencies": {
-    "@playwright/test": "^1.58.2"
+    "@playwright/test": "^1.58.0"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.18.2"
-  },
-  "description": "",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs",
-    "test": "tests"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+  }
 }
