@@ -1,16 +1,19 @@
 import { test, expect } from "@playwright/test";
+import Ajv from "ajv";
 import { API_URL } from "../utils/env";
+import { productSchema } from "./schemas/product.schema";
 
-test("Products retorna estrutura correta", async ({ request }) => {
+test("Products contract validation with JSON schema", async ({ request }) => {
   const res = await request.get(`${API_URL}/products`);
   expect(res.status()).toBe(200);
 
   const products = await res.json();
-  expect(Array.isArray(products)).toBeTruthy();
-  expect(products.length).toBeGreaterThan(0);
 
-  const product = products[0];
-  expect(product).toHaveProperty("id");
-  expect(product).toHaveProperty("name");
-  expect(product).toHaveProperty("price");
+  const ajv = new Ajv();
+  const validate = ajv.compile(productSchema);
+
+  products.forEach((product: any) => {
+    const valid = validate(product);
+    expect(valid).toBeTruthy();
+  });
 });
